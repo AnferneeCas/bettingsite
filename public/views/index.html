@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" href="../css/app.css">
+        
+	<title></title>
+</head>
+<body>
+ <div class="container-fluid h-100">
+   <div class="row h-100">
+        <div class="col-2" id="side-menu">
+            <div class="list-group">
+                <img src="https://support.cdkeys.com/hc/logo"  class="list-group-item" id="logo">
+
+                <button type="button" class="list-group-item list-group-item-action">Store</button>
+                <button type="button" class="list-group-item list-group-item-action">Play</button>
+                <button type="button" class="list-group-item list-group-item-action">Get More Coins!</button>
+                <button type="button" class="list-group-item list-group-item-action">About Us</button>
+                
+            </div>
+
+            <div class="button-container">
+                <a href="/login" class="btn btn-success disable" id="log-in">Log In</a>
+                <a href="/signin" class="btn btn-success disable" id="sign-in">Sign In</a>
+                <a href="/signin" class="btn btn-success disable" id="sign-out">Sign Out</a>
+            </div>
+
+                
+
+
+
+                
+           
+        </div>
+
+        <div class="col-10" id="content">
+                
+                <span class="timer col-12"></span>
+                <img src="https://csgo500.com/static/images/wheel_400.png"  class="col-12"id="wheel">
+                <input type="number" class="form-control col-12"  id="amount" placeholder="Betting Amount">
+               
+        <div class="row" id="players-table">
+                <div class="col-4">
+                   <button type="button" class="btn btn-lg btn-outline-secondary button-2x" id="button-bet">2X</button>
+                    <div class="list-group" id="List2X">
+                           
+                          
+                    </div>
+                </div>
+                <div class="col-4">
+                        <button type="button" class="btn btn-lg btn-outline-danger button-3x" id="button-bet">3X</button>
+                        <div class="list-group" id="List3X">
+                                
+                                
+                        </div>
+                </div>
+                <div class="col-4">
+                        <button type="button" class="btn btn-lg btn-outline-warning button-10x" id="button-bet">10X</button>
+                        <div class="list-group" id="List10X">
+                                
+                        </div>
+                </div>
+        </div>
+         
+            
+        </div>
+   </div>
+    
+
+ </div>
+</body>
+<script src="/socket.io/socket.io.js"></script>
+<script src="https://www.gstatic.com/firebasejs/5.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/5.10.1/firebase-auth.js"></script>
+<script src="../scripts/scripts.js"></script>
+<script src="../scripts/auth.js"></script>
+
+</html>

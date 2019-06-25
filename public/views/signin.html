@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" href="../css/login.css">
+    
+    <title>Document</title>
+</head>
+<body>
+    <div class="login-form">
+            <form>
+                    <div class="form-group">
+                        <label for="exampleInputEmail1">Username</label>
+                        <input type="text" class="form-control" id="InputUsername" aria-describedby="emailHelp" placeholder="Enter Username" required>
+                    </div>
+                    <div class="form-group">
+                      <label for="exampleInputEmail1">Email address</label>
+                      <input type="email" class="form-control" id="InputEmail" aria-describedby="emailHelp" placeholder="Enter email" required>
+                      
+                    </div>
+                    
+                    <div class="form-group">
+                      <label for="exampleInputPassword1">Password</label>
+                      <input type="password" class="form-control" id="InputPassword" placeholder="Password" required>
+                    </div>
+                   
+                    <button type="submit" class="btn btn-lg btn-outline-danger ">Sign In</button>
+                  </form>
+    </div>
+</body>
+<script src="https://www.gstatic.com/firebasejs/5.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/5.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/5.10.1/firebase-database.js"></script>
+<script src="../scripts/signin.js"></script>
+</html>
