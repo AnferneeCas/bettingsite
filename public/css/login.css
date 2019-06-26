@@ -24,3 +24,13 @@ html {
  .btn{
    width: 100%;
  }
+
+ .error-false{
+   visibility:hidden;
+   display:none;
+ }
+
+ .error-true{
+  visibility:visible;
+  display:block;
+ }

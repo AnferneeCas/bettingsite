@@ -1,3 +1,5 @@
+const socket = io("localhost:3000");
+
 
 const config={
     apiKey: "AIzaSyAI5ILudjYnFkpf8WAPAYvrt-mqu3WhxmM",
@@ -10,64 +12,47 @@ const config={
 };
 
 firebase.initializeApp(config);
-const auth = firebase.auth();
-
-firebase.auth().onAuthStateChanged(function(firebaseUser){
-    if(firebaseUser){
-             
-//     window.location.href="/"
-
-    }else{
-        
-        var database = firebase.database();
-         var btnLogin= document.querySelector(".btn");
-        btnLogin.addEventListener('click',function(e){
-             e.preventDefault();
-            var username= document.querySelector("#InputUsername").value;
-            var email = document.querySelector("#InputEmail").value;
-            var password = document.querySelector("#InputPassword").value;
-    
-                const promise = auth.createUserWithEmailAndPassword(email,password).then(function(user){
-            
-                    writeUserData(user.user.uid,username,email).then(function(){
-                       // window.location.href = "/";
-                    });
-    
-    
-                });
-             promise.catch(e=>console.log(e.message));
-           
-
-            
-
-    })
 
 
-    }
+
+var signInButton = document.querySelector('#signin-button');
+signInButton.addEventListener('click',function(e){
+    e.preventDefault();
+    var username = document.querySelector('#InputUsername').value;
+    var email = document.querySelector('#InputEmail').value;
+    var password = document.querySelector('#InputPassword').value;
+    var user ={
+        username:username,
+        email:email,
+        password:password,
+    };
+    socket.emit('signIn',user);
 })
 
 
 
-
-// NOTE ADD CATPCHA TO PREVENT SIGN IN SPAMMING
-
-
-
-
-function writeUserData(userId, username, email, imageUrl) {
-    
-  var promise=  firebase.database().ref('users/' + username ).set({
-        userId: userId,
-        username: username,
-        email: email
-      //some more user data
-    });
+socket.on('errors',function(error){
+    console.log(`error recido: ${error}`)
+    var err = document.querySelector('#error-display');
+    err.classList.remove("error-false");
+    err.classList.add('error-true');
+    err.innerHTML=error;
+})
 
 
-    var promise= firebase.database().ref('usernames'+username)+set({
+socket.on('succeful-signIn',function(data){
+    console.log(data);
+   
+    firebase.auth().signInWithCustomToken(data).then(function(){
+        window.location.href="/";
+    })
+     .catch(function(error) {
+        // Handle Errors here.
+        var errorCode = error.code;
+        var errorMessage = error.message;
+        // ...
+      });
 
-    })  
- 
-    return promise;
-  }
 
+   
+})
