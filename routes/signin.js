@@ -6,8 +6,23 @@ var {admin} = require('./firebaseconfig.js');
 
 
 router.get("/signin", function(req, res) {
-  console.log('HOLA DESDE ROUTER');
-  res.render("signin.html");
+  const sessionCookie = req.cookies.session || '';
+      if(sessionCookie !=''||sessionCookie!=null){
+        admin.auth().verifySessionCookie(
+          sessionCookie, true /** checkRevoked */)
+          .then((decodedClaims) => {
+            res.redirect('/');
+          })
+          .catch(error => {
+            // Session cookie is unavailable or invalid. Force user to login.
+            console.log(error);
+            res.render('signin.html');
+  
+          });
+      }else{
+        res.render('signin.html');
+      }
+     
 });
 
 router.post("/signin/:idToken", function(req, res) {

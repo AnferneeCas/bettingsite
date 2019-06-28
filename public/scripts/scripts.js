@@ -1,5 +1,18 @@
 
 const socket = io("localhost:3000");
+
+const config={
+    apiKey: "AIzaSyAI5ILudjYnFkpf8WAPAYvrt-mqu3WhxmM",
+    authDomain: "bettingsite-35e9c.firebaseapp.com",
+    databaseURL: "https://bettingsite-35e9c.firebaseio.com",
+    projectId: "bettingsite-35e9c",
+    storageBucket: "",
+    messagingSenderId: "976960596080",
+    appId: "1:976960596080:web:7fd81ff97ba0017e" 
+};
+
+firebase.initializeApp(config);
+
 var name = "anfer";
 var buttonX2 = document.querySelector(".button-2x");
 buttonX2.addEventListener('click',function(e){
@@ -72,4 +85,11 @@ socket.on('rotate',function(){
 
     },8000)
    
+})
+
+
+document.querySelector('#signOut-button').addEventListener('click',function(e){
+    e.preventDefault();
+    firebase.auth().signOut();
+    document.querySelector('#signOut-form').submit();
 })

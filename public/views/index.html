@@ -17,6 +17,10 @@
                 <button type="button" class="list-group-item list-group-item-action">Play</button>
                 <button type="button" class="list-group-item list-group-item-action">Get More Coins!</button>
                 <button type="button" class="list-group-item list-group-item-action">About Us</button>
+                <form method="POST" action="/sessionLogout" id="signOut-form">
+                    <button type="button" class="btn btn-danger" id='signOut-button'>Sign Out</button>
+                </form>
+                
                 
             </div>
 
@@ -37,7 +41,7 @@
         <div class="col-10" id="content">
                 
                 <span class="timer col-12"></span>
-                <img src="https://csgo500.com/static/images/wheel_400.png"  class="col-12"id="wheel">
+                <img src="./wheel.png"  class="col-12"id="wheel">
                 <input type="number" class="form-control col-12"  id="amount" placeholder="Betting Amount">
                
         <div class="row" id="players-table">
