@@ -3,57 +3,83 @@ var app = express();
 var cookieParser = require("cookie-parser");
 var port = process.env.PORT || 3000;
 var socketio = require("socket.io");
-
+var bodyParser = require('body-parser');
 var better = [{ better2x: [] }, { better3x: [] }, { better10x: [] }];
 app.use(express.static(__dirname + "/public"));
 app.use(cookieParser());
 app.set("views", __dirname + "/public/views");
 app.engine("html", require("ejs").renderFile);
+app.use(bodyParser.urlencoded({extended:true}));
 
+var signinRoutes = require('./routes/signin.js');
+app.use(signinRoutes);
 //FIREBASE STUFF
-
-var admin = require("firebase-admin");
-var serviceAccount = require(__dirname +
-  "/bettingsite-35e9c-firebase-adminsdk-u7zyw-6567587c93.json");
-
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  databaseURL: "https://bettingsite-35e9c.firebaseio.com"
-});
+const {admin}= require('./routes/firebaseconfig.js');
 
 var db = admin.database();
 
 app.get("/", function(req, res) {
-    console.log(req.cookies);
+    //console.log(req.cookies);
   res.render("index.html");
   
 });
 
 app.get("/login", function(req, res) {
-    if(req.cookies.token !=null){
-        admin.auth().verifyIdToken(req.cookies.token)
-        .then(function(decodedToken) {
-          var uid = decodedToken.uid;
-          console.log(`DECODED TOKEN: ${decodedToken}`);
-          // ...
-        }).catch(function(error) {
-          // Handle error
-          console.log(`error decoding ${error}`);
+  console.log("SESSION COOKIES LOGIN");
+  console.log(req.cookies.session);
+
+  const sessionCookie = req.cookies.session || '';
+    if(sessionCookie !=''||sessionCookie!=null){
+      admin.auth().verifySessionCookie(
+        sessionCookie, true /** checkRevoked */)
+        .then((decodedClaims) => {
+          res.redirect('/');
+        })
+        .catch(error => {
+          // Session cookie is unavailable or invalid. Force user to login.
+          console.log(error);
+          res.render('logic.html');
+
         });
+    }else{
+      res.render('logic.html');
     }
    
-  res.render("login.html");
+ // res.render("login.html");
 });
-app.get("/signin", function(req, res) {
-  res.render("signin.html");
-});
+// app.get("/signin", function(req, res) {
+//   res.render("signin.html");
+// });
+
+// app.post('/signin/:idToken',function(req,res){
+//  // console.log(req.params.idToken.toString());
+//   const expiresIn = 60 * 60 * 24 * 5 * 1000;
+//   // Create the session cookie. This will also verify the ID token in the process.
+//   // The session cookie will have the same claims as the ID token.
+//   // To only allow session cookie setting on recent sign-in, auth_time in ID token
+//   // can be checked to ensure user was recently signed in before creating a session cookie.
+//   admin.auth().createSessionCookie(req.params.idToken.toString(), {expiresIn})
+//     .then((sessionCookie) => {
+//      // Set cookie policy for session cookie.
+//      const options = {maxAge: expiresIn, httpOnly: true, secure: true};
+//      res.cookie('session', sessionCookie,options);
+//      console.log("SESION COOKRIR"+sessionCookie,options) ;
+//      res.cookie('test','test' );
+//      res.redirect('/');
+//     }, error => {
+//      console.log("Error creando cookie");
+//      res.redirect('/signin');
+//     });
+// });
 
 const expressServer = app.listen(port);
 const io = socketio(expressServer);
 startTimer(10);
 io.on("connection", function(socket) {
   // SOCKETS SIGN IN
-
+  socket.on('pedo',function(error){
+    console.log("HAY PEDO: "+error);
+  })
   socket.on("signIn", function(user) {
     //Sign In event
     // create reference to save username    
@@ -92,7 +118,7 @@ io.on("connection", function(socket) {
             admin.auth().createCustomToken(userRecord.uid)
             .then(function(customToken) {
                 // Send token back to client
-                console.log(customToken);
+               // console.log(customToken);
              socket.emit('succeful-signIn',customToken);
             })
             .catch(function(error) {
@@ -109,6 +135,24 @@ io.on("connection", function(socket) {
 
    
   });
+
+  socket.on('session-cookies',function(idToken){
+    const expiresIn = 60 * 60 * 24 * 5 * 1000;
+  // Create the session cookie. This will also verify the ID token in the process.
+  // The session cookie will have the same claims as the ID token.
+  // To only allow session cookie setting on recent sign-in, auth_time in ID token
+  // can be checked to ensure user was recently signed in before creating a session cookie.
+  admin.auth().createSessionCookie(idToken, {expiresIn})
+    .then((sessionCookie) => {
+     // Set cookie policy for session cookie.
+     const options = {maxAge: expiresIn, httpOnly: true, secure: true};
+     socket.emit('session',sessionCookie);
+      
+    }, error => {
+     console.log("Error creando cookie");
+    });
+});
+ 
 
   console.log(`user Connected: ${socket.id}`);
   socket.emit("loadBets", better);
@@ -127,7 +171,8 @@ io.on("connection", function(socket) {
     io.emit("newBet10x", name, amount);
     better[2].better10x.push({ name: name, amount: amount });
   });
-});
+
+}) 
 
 function startTimer(duration) {
   var timer = duration,
@@ -159,3 +204,4 @@ function selectWinner() {
     console.log("empezo");
   }, 10000);
 }
+

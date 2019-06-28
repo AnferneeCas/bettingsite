@@ -13,6 +13,15 @@ const config={
 
 firebase.initializeApp(config);
 
+firebase.auth().onAuthStateChanged(function(user) {
+    if (user) {
+      // User is signed in.
+
+     // window.location.href='/'
+    } else {
+      // No user is signed in.
+    }
+  });
 
 
 var signInButton = document.querySelector('#signin-button');
@@ -26,9 +35,11 @@ signInButton.addEventListener('click',function(e){
         email:email,
         password:password,
     };
-    socket.emit('signIn',user);
+   socket.emit('signIn',user);
+    
 })
 
+socket.on('valid')
 
 
 socket.on('errors',function(error){
@@ -43,8 +54,22 @@ socket.on('errors',function(error){
 socket.on('succeful-signIn',function(data){
     console.log(data);
    
-    firebase.auth().signInWithCustomToken(data).then(function(){
-        window.location.href="/";
+    firebase.auth().signInWithCustomToken(data).then(function(userRecord){
+      
+        
+        firebase.auth().currentUser.getIdToken(/* forceRefresh */ true).then(function(idToken) {
+          // Send token to your backend via HTTPS
+          console.log("id refresh: "+idToken)
+          var form = document.querySelector('#signin-form');
+          form.setAttribute('action',`/signin/${idToken}`);
+          //form.submit();
+       //   
+          // ...
+        }).catch(function(error) {
+          // Handle error
+          socket.emit('pedo',error);
+        });
+       // window.location.href="/";
     })
      .catch(function(error) {
         // Handle Errors here.
@@ -53,6 +78,22 @@ socket.on('succeful-signIn',function(data){
         // ...
       });
 
-
+     // https://stackoverflow.com/questions/49722324/firebase-getidtoken-not-working
    
 })
+
+
+firebase.auth().onAuthStateChanged(function(user) {
+  if (user) {
+      console.log(user); // It shows the Firebase user
+      console.log(firebase.auth().user); // It is still undefined
+      user.getIdToken(false).then(function(idToken) {  // <------ Check this line
+         console.log("id token false: "+idToken); // It shows the Firebase token now
+         var form = document.querySelector('#signin-form');
+         form.setAttribute('action',`/signin/${idToken}`);
+        form.submit();
+         
+      });
+  }
+});
+
