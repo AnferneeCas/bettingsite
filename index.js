@@ -34,8 +34,46 @@ app.post('/sessionLogout', (req, res) => {
 
 const expressServer = app.listen(port);
 const io = socketio(expressServer);
-startTimer(10);
+startTimer(30);
 io.on("connection", function(socket) {
+  //GETTING USERS COINS
+
+  socket.on('getCoins',function(sessionCookie){
+    admin.auth().verifySessionCookie(
+      sessionCookie, true /** checkRevoked */)
+      .then((decodedClaims) => {
+        console.log(`UID GETCOINS:     `+JSON.stringify(decodedClaims));
+
+
+        var ref = db.ref(`coins/${decodedClaims.uid}`);
+
+    //checks if username is alreade use
+    ref.once("value").then(function(snapshot) {
+      console.log(snapshot);
+            if(snapshot.val()!=null)
+            {
+              console.log("COINSSSSSSSS")
+              socket.emit('updateCoins',snapshot.val().coins);
+            }
+           //console.log('DATA SNAPSHOT:       '+snapshot.val().coins);
+      
+    },function(error){
+      console.log(error);
+    });
+        
+        
+      })
+      .catch(error => {
+        // Session cookie is unavailable or invalid. Force user to login.
+        console.log(error);
+        res.render('login.html');
+
+      });
+  })
+
+
+
+
   // SOCKETS SIGN IN
   socket.on('pedo',function(error){
     console.log("HAY PEDO: "+error);
@@ -71,6 +109,13 @@ io.on("connection", function(socket) {
               console.log(`Something happened when storing the username: ${user}`);
           });
           console.log("Successfully created new user:", userRecord.uid);
+
+          var ref2 = db.ref(`coins/${userRecord.uid}`);
+          ref2.set({
+            coins:0
+          }).catch(function(error){
+              console.log('Error creating COINS');
+          })
 
           //if everything went right proceeds to send the apikey to the clients cookies
           let uid = 'some-uid';
@@ -142,10 +187,11 @@ function startTimer(duration) {
 }
 
 function selectWinner() {
-  io.emit("rotate");
-  setTimeout(function() {
-    startTimer(10);
-    console.log("empezo");
-  }, 10000);
+  var ran = Math.floor(Math.random() * 54) + 1;  
+  console.log('RANDOM NUMBER: '+ ran )
+  io.emit("rotate",ran);
+ 
+  startTimer(30);
+  
 }
 

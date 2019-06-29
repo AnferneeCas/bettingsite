@@ -3,6 +3,9 @@
 <head>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <link rel="stylesheet" href="../css/app.css">
+   
+    
+   
         
 	<title></title>
 </head>
@@ -40,9 +43,29 @@
 
         <div class="col-10" id="content">
                 
-                <span class="timer col-12"></span>
-                <img src="./wheel.png"  class="col-12"id="wheel">
-                <input type="number" class="form-control col-12"  id="amount" placeholder="Betting Amount">
+                <span class="timer col-12" id="the_wheel"></span>
+                <div class="the_wheel">
+                        <canvas id='canvas' class="wheel"  width='880' height='400'>
+                                Canvas not supported, use another browser.
+                            </canvas>
+                       <!-- // <img src="./wheel.png"  class="col-12"id="wheel"> -->
+
+                </div>
+               
+                <form class="betting-content ">
+                        <div class="form-row justify-content-center">
+                          <div class="col-4 text-center centric">
+                            <label class="centric">Your Coins: </label>
+                          </div>
+                          <div class="col-2 text-center centric">
+                                <label class="centric" id='counter'>0</label>
+                              </div>
+                          <div class="col centric">
+                            <input type="text" class="form-control centric" id="amount" placeholder="Betting Amount">
+                          </div>
+                        </div>
+                      </form>
+                
                
         <div class="row" id="players-table">
                 <div class="col-4">
@@ -74,10 +97,16 @@
 
  </div>
 </body>
+
+<script src="http://cdnjs.cloudflare.com/ajax/libs/gsap/1.18.0/TweenMax.min.js"></script>
 <script src="/socket.io/socket.io.js"></script>
 <script src="https://www.gstatic.com/firebasejs/5.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/5.10.1/firebase-auth.js"></script>
+<script src="../scripts/index/Winwheel.js"></script>
+<script src="../scripts/countUp.min.js" type="module"></script>
+<script src="../scripts/index/coins.js" type="module"></script>
 <script src="../scripts/scripts.js"></script>
-<script src="../scripts/auth.js"></script>
+<script src="../scripts/index/bets.js"></script>
+<script src="../scripts/index/animations.js"></script>
 
 </html>

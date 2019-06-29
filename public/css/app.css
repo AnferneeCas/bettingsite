@@ -37,11 +37,10 @@ html {
     max-height: 100%;
 }
 
-#wheel{
+.wheel{
     margin: auto;
     display:block;
-    padding-top:5%;
-    padding-bottom: 5%;
+    
     width: auto;
     
     
@@ -72,11 +71,7 @@ html {
     }
 }
 
-#amount{
-    width:fit-content;
-    margin-bottom: 2%;
-    margin-left: 2%;
-}
+
 .amount-bet{
     display: inline;
     float: right;
@@ -86,6 +81,7 @@ html {
 .coin{
     max-width: 20%;
     max-height: 20%;
+    
 }
 .disable{
     visibility: hidden;
@@ -105,4 +101,25 @@ html {
     width: 100%;
     height: fit-content;
     text-align: center;
+}
+
+.betting-content{
+    border-radius: 25px;
+    background-color: #4BC3B5;
+    border: 2px #010402 solid;
+    width: 400px;
+    height: 55px;
+    margin-bottom: 25px;
+    vertical-align: middle;
+    display: flex;
+    padding-left: 5px;
+    padding-right: 5px;
+    
+   
+   
+
+}
+
+.centric{
+    margin:auto;
 }
