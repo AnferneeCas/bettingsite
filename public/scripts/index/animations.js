@@ -36,7 +36,7 @@ loadedImg.onload = function()
 }
  
 // Set the image source, once complete this will trigger the onLoad callback (above).
-loadedImg.src = 'http://localhost:3000/scripts/wheel.png';
+loadedImg.src = 'http://communitygameshop.com/scripts/wheel.png';
 function spin(number){
     let segmentNumber = number ;   // The segment number should be in response.
  
@@ -57,6 +57,13 @@ function spin(number){
 
 function timer(){
     document.querySelector('.timer').setAttribute('style','visibility: visible');
+    if(getCookie('session')!=null){
+        socket.emit('getCoins',getCookie('session'));
+    }
+    document.querySelector("#List2X").innerHTML=``;
+    document.querySelector("#List10X").innerHTML=``;
+    document.querySelector("#List3X").innerHTML=``;
+    
 }
  
     function drawTriangle()
@@ -80,21 +87,7 @@ function timer(){
     }
 
 
-    var buttonX3 = document.querySelector(".button-3x").addEventListener('click',function(e){
-        e.preventDefault();
-        spin(document.querySelector('#amount').value);
-        theWheel.rotationAngle=0;
-        //resetWheel();
-    });
-
-    var buttonX3 = document.querySelector(".button-10x").addEventListener('click',function(e){
-        e.preventDefault();
-       // theWheel.stopAnimation(false);
-      
-       // theWheel.draw();
-       // drawTriangle();
-       // wheelSpinning=false;    
-    });
+   
 
 
 

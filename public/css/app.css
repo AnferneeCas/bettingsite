@@ -123,3 +123,12 @@ html {
 .centric{
     margin:auto;
 }
+
+.hash{
+    font-size:1em;
+  font-weight: bold;
+  color:white;
+  text-align: center;
+  display: block;
+  width: auto;
+}
