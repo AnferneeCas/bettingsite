@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" href="../css/app.css">
+   
+    
+   
+        
+	<title></title>
+</head>
+<body>
+
+ <div class="container-fluid h-100">
+   <div class="row h-100">
+        <div class="col-2" id="side-menu">
+            <div class="list-group">
+                <img src="https://support.cdkeys.com/hc/logo"  class="list-group-item" id="logo">
+
+                <a href="/store" class="list-group-item list-group-item-action" id="">Store</a>
+                <a href="/" class="list-group-item list-group-item-action" id="">Play</a>
+            
+                <form method="POST" action="/sessionLogout" id="signOut-form">
+                    <button type="button" class="btn btn-danger" id='signOut-button'>Sign Out</button>
+                </form>
+                
+                
+            </div>
+
+            <div class="button-container">
+                <a href="/login" class="btn btn-success disable" id="log-in">Log In</a>
+                <a href="/signin" class="btn btn-success disable" id="sign-in">Sign In</a>
+                <a href="/signin" class="btn btn-success disable" id="sign-out">Sign Out</a>
+            </div>
+
+                
+
+
+
+                
+           
+        </div>
+
+        <div class="col-10" id="content">
+            <div class="container">
+                    <div class="row h-100">
+                          <%games.forEach(element => {%>
+                              <div class="col-lg-4 col-md-6 col-sm-12 mb-3 " >
+                                <div class="card"  style="width: 18rem;">
+                                    <img class="card-img-top" src='../coin.png' alt="Card image cap">
+                                    <div class="card-body">
+                                      <h5 class="card-title"><%=element.name%><span> <b>Price: </b><%=element.price%></span></h5>
+                                      <p class="card-text"></p>
+                                      <a href="#" class="btn btn-primary btn-sm button-coins" data-value='<%=element.id%>' >Pay with coins</a>
+                                      <a href="#" class="btn btn-success btn-sm button-cash">Pay with cash</a>
+                                    </div>
+                                  </div>
+                                  </div>
+                                <%}); %>  
+        
+                        
+                        </div>
+
+                  </div>
+                    
+            </div>
+               
+        </div>
+   </div>
+    
+
+ </div>
+</body>
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="https://www.gstatic.com/firebasejs/5.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/5.10.1/firebase-auth.js"></script>
+<script src="../scripts/store/scripts.js"></script>
+
+</html>

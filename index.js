@@ -12,15 +12,20 @@ app.use(cookieParser());
 app.set("views", __dirname + "/public/views");
 app.engine("html", require("ejs").renderFile);
 app.use(bodyParser.urlencoded({ extended: true }));
-
+var acceptBets=true;
 var  tableClass= require("./routes/bets");
 var table = new tableClass();
 var signinRoutes = require("./routes/signin.js");
 var loginRoutes = require("./routes/login.js");
+var pricesRoutes = require("./routes/prices.js");
+var games = require("./routes/gamesKeys.js");
 var crypto= require('crypto');
 var sha256 = require('js-sha256');
 app.use(signinRoutes);
 app.use(loginRoutes);
+app.use(pricesRoutes);
+app.use(games);
+var nodemailer = require('nodemailer');
 
 //HASHING
 
@@ -41,12 +46,61 @@ function resetLoadBets(){
 
   console.log('RESET: '+JSON.stringify(betsBlack));
 }
-app.get("/", function(req, res) {
-  //console.log(req.cookies);
+app.get("/", async function(req, res) {
+  console.log(req.cookies);
+  try {
+    var result=await admin
+  .auth()
+  .verifySessionCookie(req.cookies.session, true /** checkRevoked */)
   
-
-  res.render("index.html");
+  
+    res.render("index.html")
+  
+   
+  } catch (error) {
+    res.render("login.html") 
+  }
+  
+   
+  
+  
+ 
 });
+
+app.get('/store',function(req,res){
+  var ref = db.ref("games");
+  ref.on("value", function(snapshot) {
+    
+    var arr=[];
+    snapshot.forEach(function(data){
+     // console.log(data.val());
+      arr.push({id:data.key,name:data.val().name,price:data.val().price});
+    })
+   // console.log(arr);
+    res.render('store.ejs',{games:arr});
+  }, function (errorObject) {
+    console.log("The read failed: " + errorObject.code);
+  });
+  
+})
+
+  app.get('/coins',function(req,res){
+    var ref = db.ref("prices");
+    ref.on("value", function(snapshot) {
+      
+      var arr=[];
+      snapshot.forEach(function(data){
+       // console.log(data.val());
+        arr.push({price:data.key,amountCoins:data.val().amountCoins});
+        
+      })
+     // console.log(arr);
+      res.render('store.ejs',{games:arr});
+    }, function (errorObject) {
+      console.log("The read failed: " + errorObject.code);
+    });
+  });
+
 
 app.post("/sessionLogout", (req, res) => {
   res.clearCookie("session");
@@ -58,11 +112,69 @@ const io = socketio(expressServer);
 startTimer(30);
 io.on("connection", function(socket) {
   //GETTING USERS COINS
+  socket.on('purchase',function(id,sessionCookie){
+      console.log(id);
+    
+      
 
+      admin
+      .auth()
+      .verifySessionCookie(sessionCookie, true /** checkRevoked */)
+      .then(decodedClaims => {
+
+        
+        var value = db.ref(`games/${id}`);
+        value.once('value').then(function(snapshot){
+          if(snapshot.val()!=null)
+            return snapshot.val().price;
+        }).then(function(gamePrice){
+            console.log("Price: "+ gamePrice);
+
+            var upvotesRef = db.ref(`coins/${decodedClaims.uid}/coins`);
+        upvotesRef.transaction(function (current_value) {
+          
+              if(current_value!=null){
+                if(gamePrice!=null && current_value>=gamePrice){
+                  return current_value - gamePrice;
+                }
+                else{
+                  return ;
+                }
+
+                
+               
+              }else{
+                console.log('else');
+                return current_value;
+              }
+          },(function(error, committed,snapshot){
+
+              // console.log(error);
+              // console.log(committed);
+              // console.log(snapshot);
+              if(error!=null){
+                console.log("Error perron");
+                socket.emit('purchase-error',"UNEXPECTED ERROR,please contact the support team");
+              }else if(!committed){
+                console.log("commited false");
+                socket.emit('purchase-error',"You dont have enough coins to buy this game");
+              }else if(committed){
+                console.log("emmited");
+                socket.emit('purchase-succeful',"Thanks for your purchase!");
+                storeEmail();
+              }
+                   
+          })
+        )})
+
+        
+      });
+   
+  })
   socket.on("getCoins", function(sessionCookie) {
     admin
       .auth()
-      .verifySessionCookie(sessionCookie, true /** checkRevoked */)
+      .verifySessionCookie(sessionCookie, false /** checkRevoked */)
       .then(decodedClaims => {
        // console.log(`UID GETCOINS:     ` + JSON.stringify(decodedClaims));
 
@@ -86,7 +198,7 @@ io.on("connection", function(socket) {
       .catch(error => {
         // Session cookie is unavailable or invalid. Force user to login.
         console.log(error);
-        res.render("login.html");
+       // res.render("login.html");
       });
   });
 
@@ -165,141 +277,111 @@ io.on("connection", function(socket) {
   socket.emit("loadBets", betsBlack,betsRed,betsYellow);
 
   socket.on("betX2", function(sessionCookie, amount) {
+    if(!acceptBets){
+      console.log("Apuesta denegada");
+    }else{
     admin
       .auth()
       .verifySessionCookie(sessionCookie, true /** checkRevoked */)
       .then(decodedClaims => {
-        var ref = db.ref(`coins/${decodedClaims.uid}`);
 
-        //checks if username is alreade use
-        ref.once("value").then(
-          function(snapshot) {
-            
-            if (snapshot.val() != null) {
-              var coinsAmount = snapshot.val().coins;
-
-              if (coinsAmount >= amount) {
-                
-                var result=coinsAmount - amount
-                var update = {};
-                update[`/coins/${decodedClaims.uid}/coins`] =result;
-                db.ref()
-                  .update(update)
-                  .then(function(e){
-                    socket.emit('updateCoins',result)
-                    table.addBlackBet(amount,decodedClaims.uid);
-                    betsBlack.push({amount:amount,username:decodedClaims.name});
-                    table.printBlack();
-                    io.emit('newBet2x',decodedClaims.name,amount);
-                  })
-                  .catch(function(error) {
-                    console.log(error);
-                  });
-              }
-            }
-            //console.log('DATA SNAPSHOT:       '+snapshot.val().coins);
-          },
-          function(error) {
-            console.log(error);
-          }
-        );
-      })
-      .catch(function(error) {
-        // MANDAR ERROR AL FRONT END;
-        console.log('error de cookie session');
-      });
-  });
-
-  socket.on("betX3", function(sessionCookie, amount) {
-    admin
-    .auth()
-    .verifySessionCookie(sessionCookie, true /** checkRevoked */)
-    .then(decodedClaims => {
-      var ref = db.ref(`coins/${decodedClaims.uid}`);
-
-      //checks if username is alreade use
-      ref.once("value").then(
-        function(snapshot) {
+        var upvotesRef = db.ref(`coins/${decodedClaims.uid}/coins`);
+        upvotesRef.transaction(function (current_value) {
           
-          if (snapshot.val() != null) {
-            var coinsAmount = snapshot.val().coins;
+              if(current_value!=null){
+                if(current_value>=amount)
+                {
+                  console.log(current_value);
+                  socket.emit('updateCoins',current_value-amount);
+                      table.addBlackBet(amount,decodedClaims.uid);
+                      betsBlack.push({amount:amount,username:decodedClaims.name});
+                      table.printBlack();
+                      io.emit('newBet2x',decodedClaims.name,amount);
+                  return current_value-amount;
+                } else{
+                  //ERROR USUARIO NO TIENE SUFICIENTES COINS
+                }
+               
+              }else{
+                console.log('else');
+                return current_value;
+              }
+          });
+        });
+  
+      }    
+     
+  });
+  socket.on("betX3", function(sessionCookie, amount) {
+    if(!acceptBets){
+      console.log("Apuesta denegada");
+    }else{
+    admin
+      .auth()
+      .verifySessionCookie(sessionCookie, true /** checkRevoked */)
+      .then(decodedClaims => {
 
-            if (coinsAmount >= amount) {
-              
-              var result=coinsAmount - amount
-              var update = {};
-              update[`/coins/${decodedClaims.uid}/coins`] =result;
-              db.ref()
-                .update(update)
-                .then(function(e){
-                  socket.emit('updateCoins',result)
-                  table.addRedBet(amount,decodedClaims.uid);
-                  betsRed.push({amount:amount,username:decodedClaims.name});
-                  
-                  io.emit('newBet3x',decodedClaims.name,amount);
-                })
-                .catch(function(error) {
-                  console.log(error);
-                });
-            }
-          }
-          //console.log('DATA SNAPSHOT:       '+snapshot.val().coins);
-        },
-        function(error) {
-          console.log(error);
-        }
-      );
-    })
-    .catch(function(error) {
-      // MANDAR ERROR AL FRONT END;
-      console.log('error de cookie session');
-    });
+        var upvotesRef = db.ref(`coins/${decodedClaims.uid}/coins`);
+        upvotesRef.transaction(function (current_value) {
+          
+              if(current_value!=null){
+                if(current_value>=amount){
+                  console.log(current_value);
+                  socket.emit('updateCoins',current_value-amount)
+                      table.addRedBet(amount,decodedClaims.uid);
+                      betsRed.push({amount:amount,username:decodedClaims.name});
+                      table.printBlack();
+                      io.emit('newBet3x',decodedClaims.name,amount);
+                  return current_value-amount;
+                }else{
+                   //ERROR USUARIO NO TIENE SUFICIENTES COINS
+                }
+               
+              }else{
+                console.log('else');
+                return current_value;
+              }
+          },function(error){
+            console.log('ERrorde de transaction : '+error);
+          });
+        });
+      }
   });
 
   socket.on("betX10", function(sessionCookie, amount) {
+    if(!acceptBets){
+      console.log("Apuesta denegada");
+    }else{
     admin
     .auth()
     .verifySessionCookie(sessionCookie, true /** checkRevoked */)
     .then(decodedClaims => {
-      var ref = db.ref(`coins/${decodedClaims.uid}`);
 
-      //checks if username is alreade use
-      ref.once("value").then(
-        function(snapshot) {
-          
-          if (snapshot.val() != null) {
-            var coinsAmount = snapshot.val().coins;
-
-            if (coinsAmount >= amount) {
-              
-              var result=coinsAmount - amount
-              var update = {};
-              update[`/coins/${decodedClaims.uid}/coins`] =result;
-              db.ref()
-                .update(update)
-                .then(function(e){
-                  socket.emit('updateCoins',result)
-                  table.addYellowBet(amount,decodedClaims.uid);
-                  betsYellow.push({amount:amount,username:decodedClaims.name});
-                  
-                  io.emit('newBet10x',decodedClaims.name,amount);
-                })
-                .catch(function(error) {
-                  console.log(error);
-                });
+      var upvotesRef = db.ref(`coins/${decodedClaims.uid}/coins`);
+      upvotesRef.transaction(function (current_value) {
+        
+            if(current_value!=null){
+              if(current_value>=amount){
+                console.log(current_value);
+                socket.emit('updateCoins',current_value-amount)
+                    table.addYellowBet(amount,decodedClaims.uid);
+                    betsYellow.push({amount:amount,username:decodedClaims.name});
+                    table.printBlack();
+                    io.emit('newBet10x',decodedClaims.name,amount);
+                return current_value-amount;
+              }else{
+                //ERROR USUARIO NO TIENE SUFICIENTES COINS
+              }
+             
+            }else{
+              console.log('else');
+              return current_value;
             }
-          }
-          //console.log('DATA SNAPSHOT:       '+snapshot.val().coins);
-        },
-        function(error) {
-          console.log(error);
-        }
-      );
-    })
-    .catch(function(error) {
-      // MANDAR ERROR AL FRONT END;
-      console.log('error de cookie session');
-    });
+        },function(error){
+          console.log('ERrorde de transaction : '+error);
+        });
+      });
+    }
   });
 });
 
@@ -309,7 +391,7 @@ function startTimer(duration) {
     seconds;
 
   var ran = provablyFair();
-  
+  acceptBets=true;
   var interval = setInterval(function() {
     minutes = parseInt(timer / 60, 10);
     seconds = parseInt(timer % 60, 10);
@@ -326,6 +408,9 @@ function startTimer(duration) {
       clearInterval(this);
       selectWinner(ran);
       
+    }
+    if(timer< 3){
+      acceptBets=false;
     }
   }, 1000);
 }
@@ -371,4 +456,28 @@ function provablyFair(){
   return ran;
   
 }
+
+function storeEmail(sender, reciever, key){
+  var transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+           user: 'anferneecas@gmail.com',
+           pass: 'anfer2325'
+       }
+   });
+
+   const mailOptions = {
+    from: 'anferneecas@gmail.com', // sender address
+    to: 'anferneecas@gmail.com', // list of receivers
+    subject: 'Subject of your email', // Subject line
+    html: '<p>Your html here</p>'// plain text body
+  };
+
+  transporter.sendMail(mailOptions, function (err, info) {
+    if(err)
+      console.log(err)
+    else
+      console.log(info);
+ });
+} 
 

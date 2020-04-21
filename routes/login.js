@@ -10,7 +10,7 @@ router.get("/login", function(req, res) {
     const sessionCookie = req.cookies.session || '';
       if(sessionCookie !=''||sessionCookie!=null){
         admin.auth().verifySessionCookie(
-          sessionCookie, true /** checkRevoked */)
+          sessionCookie, false /** checkRevoked */)
           .then((decodedClaims) => {
             res.redirect('/');
           })

@@ -36,7 +36,7 @@ loadedImg.onload = function()
 }
  
 // Set the image source, once complete this will trigger the onLoad callback (above).
-loadedImg.src = 'http://communitygameshop.com/scripts/wheel.png';
+loadedImg.src = 'https://i.ibb.co/zJJ42py/wheel.png';
 function spin(number){
     let segmentNumber = number ;   // The segment number should be in response.
  
