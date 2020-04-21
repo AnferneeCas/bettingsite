@@ -1,75 +1,35 @@
 
+
 const socket = io("localhost:3000");
-var name = "anfer";
-var buttonX2 = document.querySelector(".button-2x");
-buttonX2.addEventListener('click',function(e){
+
+const config={
+    apiKey: "AIzaSyDOzLfPupVQqP5RqQOR4JvWsZaxqYV52Ws",
+    authDomain: "bettingsite-46549.firebaseapp.com",
+    databaseURL: "https://bettingsite-46549.firebaseio.com",
+    projectId: "bettingsite-46549",
+    storageBucket: "bettingsite-46549.appspot.com",
+    messagingSenderId: "173582190949",
+    appId: "1:173582190949:web:f2cb094ce08848494b398c"
+};
+
+firebase.initializeApp(config);
+
+var name = 'anfer';
+
+
+document.querySelector('#signOut-button').addEventListener('click',async function(e){
     e.preventDefault();
-    var amount= document.querySelector('#amount').value;
-    if(amount>0){
-        console.log("clicked");
-        socket.emit('betX2',name,amount);
-    }
     
+await firebase.auth().signOut()
+    console.log(firebase.auth().currentUser);
+     document.querySelector('#signOut-form').submit();
 })
 
-var buttonX3 = document.querySelector(".button-3x");
-buttonX3.addEventListener('click',function(e){
-    e.preventDefault();
-    var amount= document.querySelector('#amount').value;
-    if(amount>0){
-        console.log("clicked");
-        socket.emit('betX3',name,amount);
-    }
-})
 
-var buttonX10 = document.querySelector(".button-10x");
-buttonX10.addEventListener('click',function(e){
-    e.preventDefault();
-    var amount= document.querySelector('#amount').value;
-    if(amount>0){
-        console.log("clicked");
-        socket.emit('betX10',name,amount);
-    }
-})
+function getCookie(name) {
+    var value = "; " + document.cookie;
+    var parts = value.split("; " + name + "=");
+    if (parts.length == 2) return parts.pop().split(";").shift();
+  }
 
-socket.on('loadBets',function(bets){
-    bets[0].better2x.forEach(element => {
-        document.querySelector("#List2X").innerHTML+=`<button type="button" class="list-group-item list-group-item-action"><div><span>${element.name}</span> <div class="amount-bet"><span>${element.amount}</span> <img src="./coin.png" class="coin"></div> </div> </button>`
-    });
-    bets[1].better3x.forEach(element => {
-        document.querySelector("#List3X").innerHTML+=`<button type="button" class="list-group-item list-group-item-action"><div><span>${element.name}</span> <div class="amount-bet"><span>${element.amount}</span> <img src="./coin.png" class="coin"></div> </div> </button>`
-    });
-    bets[2].better10x.forEach(element => {
-        document.querySelector("#List10X").innerHTML+=`<button type="button" class="list-group-item list-group-item-action"><div><span>${element.name}</span> <div class="amount-bet"><span>${element.amount}</span> <img src="./coin.png" class="coin"></div> </div> </button>`
-    });
-})
-
-socket.on('newBet2x',function(user,amount){
-    console.log('new bet');
-    document.querySelector("#List2X").innerHTML+=`<button type="button" class="list-group-item list-group-item-action"><div><span>${user}</span> <div class="amount-bet"><span>${amount}</span> <img src="./coin.png" class="coin"></div> </div> </button>`
-})
-
-socket.on('newBet3x',function(user,amount){
-    console.log('new bet');
-    document.querySelector("#List3X").innerHTML+=`<button type="button" class="list-group-item list-group-item-action"><div><span>${user}</span> <div class="amount-bet"><span>${amount}</span> <img src="./coin.png" class="coin"></div> </div> </button>`
-})
-
-socket.on('newBet10x',function(user,amount){
-    console.log('new bet');
-    document.querySelector("#List10X").innerHTML+=`<button type="button" class="list-group-item list-group-item-action"><div><span>${user}</span> <div class="amount-bet"><span>${amount}</span> <img src="./coin.png" class="coin"></div> </div> </button>`
-})
-
-socket.on('tick',function(time){
-    console.log("hola");
-    console.log(time);
-    document.querySelector('.timer').innerHTML=time;
-})
-
-socket.on('rotate',function(){
-    document.getElementById("wheel").setAttribute("style","transform: rotate(190.647deg);");
-    setTimeout(function(){
-        document.getElementById("wheel").setAttribute("style","");
-
-    },8000)
-   
-})
+ 
